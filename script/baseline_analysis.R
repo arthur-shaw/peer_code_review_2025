@@ -191,6 +191,81 @@ hfc_sf <- sf::st_as_sf(
   crs = 4326
 )
 
+# consider making a function
+# you seem to be doing the same thing for Karongi, Rulindo, and Rutsiro
+# this could also help if, say, you want the change the plot theme in
+# one place rather than several
+# this is clearly refactoring that might not have been desirable early on
+# in the project
+
+#' Create the area plot for a given area
+#'
+#' @param hfc_sf
+#' @param villages_df
+#' @param data_dir Character. Path to the Dropbox data directory.
+#' @param sub_dir Character. Name of the area directory where shapefiles are
+#' located.
+#' @param shp_name Character. Name of the shapefile for the area.
+#' @param district_key Character. Name of the district.
+#' @param output_path Character. Where plot to be saved.
+#'
+#' @return Side-effect of creating area plot.
+#' (NOTE: the lv stuff migth need to be exported for later use.)
+#'
+#' @importFrom sf st_read st_transform
+#' @importFrom dplyr filer
+#' @importFrom ggplot2 ggplot geom_sf labs theme_minimal ggsave
+#' @importFrom glue glue
+create_area_plot <- function(
+  hfc_sf,
+  villages_df,
+  data_dir,
+  sub_dir,
+  shp_name,
+  district_key,
+  output_path
+) {
+
+  lv <- sf::st_read(dsn = file.path(data_path, sub_dir, shp_name))
+
+  hfc <- hfc_sf |> 
+    dplyr::filter(district_key == district_key)
+
+  villages <- villages_df |> 
+    dplyr::filter(District == district_key)
+
+  lv <- sf::st_transform(lv, crs = 4326)
+  villages <- sf::st_transform(villages, crs = 4326)
+
+  plot <- ggplot2::ggplot(data = villages) +
+    ggplot2::geom_sf(fill = NA, color = "lightgrey") +  
+    ggplot2::geom_sf(data = lv, color = "blue", size = 0.5) + 
+    ggplot2::geom_sf(data = hfc, color = "red", size = 0.1) +
+    ggplot2::labs(title = glue::glue("Electrification Network in {district_key}")) +
+    ggplot2::theme_minimal()
+
+  ggplot2::ggsave(
+    filename = file.path(output_path, glue::glue("{district_key}")),
+    plot = plot,
+    width = 12,      
+    height = 9,      
+    units = "in",
+    scale = 0.5
+  )
+
+}
+
+# its use might look like this
+create_area_plot(
+  hfc_sf = hfc_sf,
+  villages_df = rwa_villages,
+  data_dir = data_path,
+  sub_dir = "Karongi Surveyed 0116",
+  shp_name = "Surveyed_LV_Lines.shp"
+  district_key = "Karongi",
+  output_path = output_path
+)
+
 ##Karongi----
 karongi_lv <- sf::st_read(
   dsn = file.path(data_path, "Karongi Surveyed 0116", "Surveyed_LV_Lines.shp")
