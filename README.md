@@ -12,9 +12,7 @@ Before running the code, please ensure you have the following installed on your 
 
 ## Data Access
 
-The data needed for this project is shared via Dropbox. You can download it using the following link:
-
-[Download Data from Dropbox](https://www.dropbox.com/scl/fo/xttb8ne898xaqguf01zen/ANdrSWOqaaPBJG4PwCsS2ZI?rlkey=2j5aef9ehrpuewhqicfyok2ww&st=rr64f0jy&dl=0)
+The data needed for this project is shared via Dropbox.
 
 After downloading the data, **update the path in the code** to match the location of the data on your computer. This may involve modifying the file path string to point to your local Dropbox folder.
 
