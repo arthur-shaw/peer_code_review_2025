@@ -157,8 +157,8 @@ hfc_sf <- sf::st_as_sf(
 #' @param district_key Character. Name of the district.
 #' @param output_path Character. Where plot to be saved.
 #'
-#' @return Side-effect of creating area plot.
-#' (NOTE: the lv stuff migth need to be exported for later use.)
+#' @return lv
+#' Also, side-effect of creating area plot.
 #'
 #' @importFrom sf st_read st_transform
 #' @importFrom dplyr filer
@@ -200,6 +200,8 @@ create_area_plot <- function(
     units = "in",
     scale = 0.5
   )
+
+  return(lv)
 
 }
 
