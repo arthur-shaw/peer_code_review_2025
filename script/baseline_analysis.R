@@ -5,7 +5,6 @@
 #############
 
 
-library(googlesheets4)
 getwd()
 
 # ==============================================================================
@@ -21,24 +20,25 @@ getwd()
 # unless this is just a pin that exists in a shared folder that has a different
 # path on each user's device
 # see more here: https://pins.rstudio.com/index.html
+dropbox <- 'C:/Users/WB393438/Downloads/code_review_2025-03/peer_code_review_2025/Dropbox' #Replace ~ with your own path to Dropbox
 
 hfc_data_path <- file.path(
   dropbox,
-  "peer_code_review_2025/data"
+  "data"
 )
 
 output_path <- file.path(
   dropbox,
-  "peer_code_review_2025/output"
+  "output"
 )
 
 data_path <- file.path(
   dropbox,
-  "peer_code_review_2025/data"
+  "data"
 )
 
 # ==============================================================================
-# Data preparation
+# Prepare survey preparation
 # ==============================================================================
 
 hfc_constr <- readxl::read_xlsx(file.path(data_path, "hfc_constr.xlsx"))
@@ -48,23 +48,23 @@ hfc_constr <- readxl::read_xlsx(file.path(data_path, "hfc_constr.xlsx"))
 hfc_regress <- hfc_constr |> 
   dplyr::mutate(
     asset_index = C3_1 + C3_2 + C3_3
-    + C3_4 + C3_5 + C3_6 + C3_7 + C3_8
+      + C3_4 + C3_5 + C3_6 + C3_7 + C3_8
       + C3_9 + C3_10 +C3_11 + C3_12 + C3_13,
     wtp_12 = J4_2*12,
     wtp_24 = J5_2*24,
     dplyr::across(
       .cols = c(
         "J1_final", # wtp_fixed
-                  "J2_1",     # wtp_fixed_appliance
-                  "J3_1"     # wtp_fixed_low_reliability
+        "J2_1",     # wtp_fixed_appliance
+        "J3_1"     # wtp_fixed_low_reliability
       ),
       .fns = ~ pmax(.x, 1000)
     ),
     dplyr::across(
       .cols = c(
         "J1_final", # wtp_fixed
-                  "J2_1",     # wtp_fixed_appliance
-                  "J3_1"     # wtp_fixed_low_reliability
+        "J2_1",     # wtp_fixed_appliance
+        "J3_1"     # wtp_fixed_low_reliability
       ),
       .fns = ~pmin(.x, 100000)
     )
@@ -81,7 +81,7 @@ hfc_regress <- hfc_constr |>
     `log(fixed_system) - log(low_reliability)` = log(fixed_system) - log(low_reliability)
   ) |> 
   dplyr::rename(
-    household_size = A1_1
+    household_size = A1_1,
     primary_week = A2_7,
     primary_day = A2_8,
     primary_hour = A2_9,
@@ -119,10 +119,10 @@ hfc_regress <- hfc_constr |>
     ),
     log_head_weekly_income = log(weekly_income / 1000 + 1),  
     `log(wtp_12)-log(fixed_system)` = log(wtp_12) - log(fixed_system)
-)
+  )
 
 # ==============================================================================
-# Create map plots
+# Prepare geospational data and plots
 # ==============================================================================
 
 #Distance to LV----
@@ -213,7 +213,7 @@ karongi_lv <- create_area_plot(
   villages_df = rwa_villages,
   data_dir = data_path,
   sub_dir = "Karongi Surveyed 0116",
-  shp_name = "Surveyed_LV_Lines.shp"
+  shp_name = "Surveyed_LV_Lines.shp",
   district_key = "Karongi",
   output_path = output_path
 )
@@ -224,7 +224,7 @@ rulindo_lv <- create_area_plot(
   villages_df = rwa_villages,
   data_dir = data_path,
   sub_dir = "Rulindo Surveyed 0116",
-  shp_name = "Surveyed_LV_Lines.shp"
+  shp_name = "Surveyed_LV_Lines.shp",
   district_key = "Rulindo",
   output_path = output_path
 )
@@ -235,7 +235,7 @@ rutsiro_lv <- create_area_plot(
   villages_df = rwa_villages,
   data_dir = data_path,
   sub_dir = "Rutsiro Surveyed 0116",
-  shp_name = "Surveyed_LV_Lines.shp"
+  shp_name = "Surveyed_LV_Lines.shp",
   district_key = "Rutsiro",
   output_path = output_path
 )
@@ -307,10 +307,8 @@ hfc_sf_regress <- hfc_sf |>
   )
 
 # ==============================================================================
-# Regression analysis
+# Run regression analysis
 # ==============================================================================
-
-#felm with distance_lv-----
 
 # consider creating a function here
 # the only tricky part is that you'll need "quote" the formula and then evluate it
