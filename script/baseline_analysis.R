@@ -8,6 +8,9 @@
 library(googlesheets4)
 getwd()
 
+# ==============================================================================
+# Set project paths
+# ==============================================================================
 
 # Import Data ----
 # rather than have users point to their own local folder and change the path
@@ -33,6 +36,10 @@ data_path <- file.path(
   dropbox,
   "peer_code_review_2025/data"
 )
+
+# ==============================================================================
+# Data preparation
+# ==============================================================================
 
 hfc_constr <- readxl::read_xlsx(file.path(data_path, "hfc_constr.xlsx"))
 
@@ -112,70 +119,11 @@ hfc_regress <- hfc_constr |>
     ),
     log_head_weekly_income = log(weekly_income / 1000 + 1),  
     `log(wtp_12)-log(fixed_system)` = log(wtp_12) - log(fixed_system)
-  )
-
-
-#Regression outputs----
-
-
-reg_low_reliability <- lfe::felm(
-  formula = log(low_reliability) ~ log_head_weekly_income + asset_index + household_size|village,
-  data = hfc_regress
-)
-summary(reg_low_reliability)
-
-reg_fixed <- lfe::felm(
-  formula = log(fixed_system) ~ log_head_weekly_income + asset_index + household_size|village,
-  data = hfc_regress
-)
-summary(reg_fixed)
-
-reg_appliance_fix <- lfe::felm(
-  formula = `log(appliance) - log(fixed_system)`~ log_head_weekly_income + asset_index + household_size|village,
-  data = hfc_regress
-)
-summary(reg_appliance_fix)
-
-reg_fix_low_reliability <- lfe::felm(
-  formula = `log(fixed_system) - log(low_reliability)` ~ log_head_weekly_income + asset_index + household_size|village,
-  data = hfc_regress
-)
-summary(reg_fix_low_reliability)
-
-reg_12 <- lfe::felm(
-  formula = `log(wtp_12)-log(fixed_system)` ~ log_head_weekly_income + asset_index + household_size|village,
-  data = hfc_regress
-)
-summary(reg_12)
-
-reg_lightbulb <- lfe::felm(
-  formula = log(lightbulb) ~ log_head_weekly_income + asset_index + household_size|village,
-  data = hfc_regress
-)
-summary(reg_lightbulb)
-
-regs <- list(
-  "low_reliability" = reg_low_reliability,
-  "fixed_system" = reg_fixed,
-  "appliance_fix" = reg_appliance_fix,
-  "fix_reliability" = reg_fix_low_reliability,
-  "reg_12" = reg_12,
-  "lightbulb" = reg_lightbulb
 )
 
-stargazer::stargazer( 
-  regs,
-  type = "latex", 
-  title = "Regression Results", 
-  out = file.path(output_path, "regression_output1.latex")
-)
-
-stargazer::stargazer(
-  regs,
-  type = "html",
-  title = "Regression Results",
-  out = file.path(output_path, "regression_output1.html")
-)
+# ==============================================================================
+# Create map plots
+# ==============================================================================
 
 #Distance to LV----
 
@@ -430,7 +378,9 @@ hfc_sf_regress <- hfc_sf |>
     distance_to_lv = distance_to_lv / 1000  # Convert meters to kilometers
   )
 
-
+# ==============================================================================
+# Regression analysis
+# ==============================================================================
 
 #felm with distance_lv-----
 
@@ -462,6 +412,75 @@ run_felm_reg <- function(
   return(reg)
 
 }
+
+# at worst, this would make your repetitive work more compact
+# at best, you could use `purrr` to apply to apply the function to a list of
+# forumulas and get a list of results
+
+#Regression outputs----
+
+
+reg_low_reliability <- lfe::felm(
+  formula = log(low_reliability) ~ log_head_weekly_income + asset_index + household_size|village,
+  data = hfc_regress
+)
+summary(reg_low_reliability)
+
+reg_fixed <- lfe::felm(
+  formula = log(fixed_system) ~ log_head_weekly_income + asset_index + household_size|village,
+  data = hfc_regress
+)
+summary(reg_fixed)
+
+reg_appliance_fix <- lfe::felm(
+  formula = `log(appliance) - log(fixed_system)`~ log_head_weekly_income + asset_index + household_size|village,
+  data = hfc_regress
+)
+summary(reg_appliance_fix)
+
+reg_fix_low_reliability <- lfe::felm(
+  formula = `log(fixed_system) - log(low_reliability)` ~ log_head_weekly_income + asset_index + household_size|village,
+  data = hfc_regress
+)
+summary(reg_fix_low_reliability)
+
+reg_12 <- lfe::felm(
+  formula = `log(wtp_12)-log(fixed_system)` ~ log_head_weekly_income + asset_index + household_size|village,
+  data = hfc_regress
+)
+summary(reg_12)
+
+reg_lightbulb <- lfe::felm(
+  formula = log(lightbulb) ~ log_head_weekly_income + asset_index + household_size|village,
+  data = hfc_regress
+)
+summary(reg_lightbulb)
+
+regs <- list(
+  "low_reliability" = reg_low_reliability,
+  "fixed_system" = reg_fixed,
+  "appliance_fix" = reg_appliance_fix,
+  "fix_reliability" = reg_fix_low_reliability,
+  "reg_12" = reg_12,
+  "lightbulb" = reg_lightbulb
+)
+
+stargazer::stargazer( 
+  regs,
+  type = "latex", 
+  title = "Regression Results", 
+  out = file.path(output_path, "regression_output1.latex")
+)
+
+stargazer::stargazer(
+  regs,
+  type = "html",
+  title = "Regression Results",
+  out = file.path(output_path, "regression_output1.html")
+)
+
+#felm with distance_lv-----
+
 
 # Regression 1: Low Reliability
 reg_low_reliability <- lfe::felm(
