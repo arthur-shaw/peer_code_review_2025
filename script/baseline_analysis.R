@@ -434,6 +434,34 @@ hfc_sf_regress <- hfc_sf |>
 
 #felm with distance_lv-----
 
+# consider creating a function here
+# the only tricky part is that you'll need "quote" the formula and then evluate it
+# see `20.6.2.1 Wrapping modelling functions` here: https://adv-r.hadley.nz/evaluation.html
+
+# might look something like this
+
+run_felm_reg <- function(
+  data,
+  formula,
+  env = rlang::caller_env()
+) {
+
+  # quote inputs
+  formula <- rlang::enexpr(formula)
+  data <- enexpr(data)
+
+  # run regression
+  reg <- lfe::felm(
+    formula = !!formula,
+    data = !!data
+  )
+
+  # print regression output
+  summary(reg)
+
+  return(reg)
+
+}
 
 # Regression 1: Low Reliability
 reg_low_reliability <- lfe::felm(
