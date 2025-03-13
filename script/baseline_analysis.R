@@ -31,34 +31,34 @@ hfc_constr <- read_xlsx(file.path(data_path, "hfc_constr.xlsx"))
 
 #Regression analysis
 
-hfc_regress <- hfc_constr %>% 
+hfc_regress <- hfc_constr |> 
   mutate(
     asset_index = C3_1 + C3_2 + C3_3
     + C3_4 + C3_5 + C3_6 + C3_7 + C3_8
     + C3_9 + C3_10 +C3_11 + C3_12 + C3_13
-  ) %>% 
+  ) |> 
   mutate(
     wtp_12 = J4_2*12,
     wtp_24 = J5_2*24
-  ) %>% 
+  ) |> 
   mutate(across(c("J1_final", # wtp_fixed
                   "J2_1",     # wtp_fixed_appliance
                   "J3_1"     # wtp_fixed_low_reliability
-  ), ~ pmax(.x, 1000)))  %>% 
+  ), ~ pmax(.x, 1000)))  |> 
   mutate(across(c("J1_final", # wtp_fixed
                   "J2_1",     # wtp_fixed_appliance
                   "J3_1"     # wtp_fixed_low_reliability
-  ), ~pmin(.x, 100000))) %>% 
+  ), ~pmin(.x, 100000))) |> 
   
   rename(
     fixed_system = J1_final,
     appliance = J2_1,
     low_reliability = J3_1,
     lightbulb = J6_1
-  ) %>%  
+  ) |>  
   mutate(
     lightbulb = pmax(lightbulb, 100)
-  ) %>% 
+  ) |> 
   mutate(
     `log(appliance) - log(fixed_system)` = log(appliance) - log(fixed_system),
     `log(fixed_system) - log(low_reliability)` = log(fixed_system) - log(low_reliability)
@@ -67,8 +67,8 @@ hfc_regress <- hfc_constr %>%
 
 #Adding other controls----
 
-hfc_regress <- hfc_regress %>% 
-  rename(household_size = A1_1) %>% 
+hfc_regress <- hfc_regress |> 
+  rename(household_size = A1_1) |> 
   rename(
     primary_week = A2_7,
     primary_day = A2_8,
@@ -78,7 +78,7 @@ hfc_regress <- hfc_regress %>%
     secondary_hour = A3_10
   )
 
-hfc_regress <- hfc_regress %>%
+hfc_regress <- hfc_regress |>
   mutate(
     A2_4_week = case_when(
       A2_5_label == "Hour" ~ A2_4 * primary_hour * primary_day,
@@ -92,24 +92,24 @@ hfc_regress <- hfc_regress %>%
       A2_5_label == "Year" ~ round(A2_4/(12*4),2),
       TRUE ~ A2_4
     )
-  ) %>% 
+  ) |> 
   mutate(
     A2_4_week = ifelse(
       A2_4_week > quantile(A2_4_week, 0.99, na.rm = TRUE),
       quantile(A2_4_week, 0.99, na.rm = TRUE), A2_4_week
     ) 
-  ) %>% 
+  ) |> 
   rename(
     weekly_income = A2_4_week
   ) 
 
 
-hfc_regress<- hfc_regress%>% 
+hfc_regress<- hfc_regress|> 
   mutate(
     weekly_income = ifelse(is.na(weekly_income), 0, weekly_income)
   )
 
-hfc_regress <- hfc_regress %>%
+hfc_regress <- hfc_regress |>
   mutate(
     log_head_weekly_income = log(weekly_income / 1000 + 1),  
     `log(wtp_12)-log(fixed_system)` = log(wtp_12) - log(fixed_system) ,
@@ -173,10 +173,10 @@ hfc_sf <- st_as_sf(hfc_regress, coords = c("coordinate.Longitude", "coordinate.L
 ##Karongi----
 karongi_lv <- st_read(dsn = file.path(data_path, "Karongi Surveyed 0116", "Surveyed_LV_Lines.shp"))
 
-hfc_karongi <- hfc_sf %>% 
+hfc_karongi <- hfc_sf |> 
   filter(district_key == "Karongi")
 
-karongi_villages <- rwa_villages %>% 
+karongi_villages <- rwa_villages |> 
   filter(District == "Karongi")
 
 karongi_lv <- st_transform(karongi_lv, crs = 4326)
@@ -202,10 +202,10 @@ ggsave(
 
 rulindo_lv <- st_read(dsn = file.path(data_path, "Rulindo Surveyed 0116", "Surveyed_LV_Lines.shp"))
 
-hfc_rulindo <- hfc_sf %>% 
+hfc_rulindo <- hfc_sf |> 
   filter(district_key == "Rulindo")
 
-rulindo_villages <- rwa_villages %>% 
+rulindo_villages <- rwa_villages |> 
   filter(District == "Rulindo")
 
 rulindo_lv <- st_transform(rulindo_lv, crs = 4326)
@@ -236,10 +236,10 @@ ggsave(
 ##Rutsiro----
 rutsiro_lv <- st_read(dsn = file.path(data_path, "Rutsiro Surveyed 0116", "Surveyed_LV_Lines.shp"))
 
-hfc_rutsiro <- hfc_sf %>% 
+hfc_rutsiro <- hfc_sf |> 
   filter(district_key == "Rutsiro")
 
-rutsiro_villages <- rwa_villages %>% 
+rutsiro_villages <- rwa_villages |> 
   filter(District == "Rutsiro")
 
 rutsiro_lv <- st_transform(rutsiro_lv, crs = 4326)
@@ -266,11 +266,11 @@ ggsave(
 #Rusizi----
 
 
-hfc_rusizi <- hfc_sf %>% 
+hfc_rusizi <- hfc_sf |> 
   filter(district_key == "Rusizi")
 
 
-rusizi_villages <- rwa_villages %>% 
+rusizi_villages <- rwa_villages |> 
   filter(District == "Rusizi")
 
 
@@ -301,8 +301,8 @@ ggsave(
 
 
 #LV line----
-karongi_lv <- karongi_lv %>% rename(length = SHAPE_Leng)
-rutsiro_lv <- rutsiro_lv %>% select(length, geometry)
+karongi_lv <- karongi_lv |> rename(length = SHAPE_Leng)
+rutsiro_lv <- rutsiro_lv |> select(length, geometry)
 
 lv_line <- rbind(karongi_lv, rulindo_lv, rutsiro_lv)
 
@@ -315,14 +315,14 @@ dist_matrix <- as.data.frame(dist_matrix)
 
 dist_matrix$min_meter <- apply(dist_matrix, 1, min, na.rm = TRUE)
 
-dist <- dist_matrix %>% 
-  select(min_meter) %>% 
+dist <- dist_matrix |> 
+  select(min_meter) |> 
   mutate(min_meter = round(min_meter,2))
 
 
-hfc_sf_regress <- hfc_sf %>%
-  mutate(distance_to_lv = dist) %>% 
-  st_drop_geometry() %>% 
+hfc_sf_regress <- hfc_sf |>
+  mutate(distance_to_lv = dist) |> 
+  st_drop_geometry() |> 
   mutate(
     distance_to_lv = as.numeric(unlist(distance_to_lv)),
     distance_to_lv = distance_to_lv / 1000  # Convert meters to kilometers
