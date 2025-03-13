@@ -336,6 +336,9 @@ run_felm_reg <- function(
 
 #Regression outputs----
 
+# ------------------------------------------------------------------------------
+# Regressions with survey data only
+# ------------------------------------------------------------------------------
 
 reg_low_reliability <- lfe::felm(
   formula = log(low_reliability) ~ log_head_weekly_income + asset_index + household_size|village,
@@ -398,6 +401,9 @@ stargazer::stargazer(
 
 #felm with distance_lv-----
 
+# ------------------------------------------------------------------------------
+# Regressions with geospatial attributes
+# ------------------------------------------------------------------------------
 
 # Regression 1: Low Reliability
 reg_low_reliability <- lfe::felm(
