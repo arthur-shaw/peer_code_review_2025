@@ -10,7 +10,14 @@ getwd()
 
 
 # Import Data ----
-dropbox <- 'C:/Users/~/Dropbox' #Replace ~ with your own path to Dropbox
+# rather than have users point to their own local folder and change the path
+# consider using `{pins}`
+# while this is something I've wanted to do at WBG for a LONG time, I've not
+# tested it yet, among other reasons because of our restrictive IT environment
+# nevertheless, it looks like Dropbox might be supported somehow,
+# unless this is just a pin that exists in a shared folder that has a different
+# path on each user's device
+# see more here: https://pins.rstudio.com/index.html
 
 hfc_data_path <- file.path(
   dropbox,
