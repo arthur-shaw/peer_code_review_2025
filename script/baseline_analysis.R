@@ -119,29 +119,47 @@ hfc_regress<- hfc_regress |>
 hfc_regress <- hfc_regress |>
   dplyr::mutate(
     log_head_weekly_income = log(weekly_income / 1000 + 1),  
-    `log(wtp_12)-log(fixed_system)` = log(wtp_12) - log(fixed_system) ,
+    `log(wtp_12)-log(fixed_system)` = log(wtp_12) - log(fixed_system)
   )
 
 
 #Regression outputs----
 
 
-reg_low_reliability <- lfe::felm(log(low_reliability) ~ log_head_weekly_income + asset_index + household_size|village, data = hfc_regress)
+reg_low_reliability <- lfe::felm(
+  formula = log(low_reliability) ~ log_head_weekly_income + asset_index + household_size|village,
+  data = hfc_regress
+)
 summary(reg_low_reliability)
 
-reg_fixed <- lfe::felm(log(fixed_system) ~ log_head_weekly_income + asset_index + household_size|village, data = hfc_regress)
+reg_fixed <- lfe::felm(
+  formula = log(fixed_system) ~ log_head_weekly_income + asset_index + household_size|village,
+  data = hfc_regress
+)
 summary(reg_fixed)
 
-reg_appliance_fix <- lfe::felm(`log(appliance) - log(fixed_system)`~ log_head_weekly_income + asset_index + household_size|village, data = hfc_regress)
+reg_appliance_fix <- lfe::felm(
+  formula = `log(appliance) - log(fixed_system)`~ log_head_weekly_income + asset_index + household_size|village,
+  data = hfc_regress
+)
 summary(reg_appliance_fix)
 
-reg_fix_low_reliability <- lfe::felm(`log(fixed_system) - log(low_reliability)` ~ log_head_weekly_income + asset_index + household_size|village, data = hfc_regress)
+reg_fix_low_reliability <- lfe::felm(
+  formula = `log(fixed_system) - log(low_reliability)` ~ log_head_weekly_income + asset_index + household_size|village,
+  data = hfc_regress
+)
 summary(reg_fix_low_reliability)
 
-reg_12 <- lfe::felm(`log(wtp_12)-log(fixed_system)` ~ log_head_weekly_income + asset_index + household_size|village, data = hfc_regress)
+reg_12 <- lfe::felm(
+  formula = `log(wtp_12)-log(fixed_system)` ~ log_head_weekly_income + asset_index + household_size|village,
+  data = hfc_regress
+)
 summary(reg_12)
 
-reg_lightbulb <- lfe::felm(log(lightbulb) ~ log_head_weekly_income + asset_index + household_size|village, data = hfc_regress)
+reg_lightbulb <- lfe::felm(
+  formula = log(lightbulb) ~ log_head_weekly_income + asset_index + household_size|village,
+  data = hfc_regress
+)
 summary(reg_lightbulb)
 
 regs <- list(
@@ -175,10 +193,16 @@ rwa_villages <- sf::st_read(dsn = file.path(data_path, "rwa_villages", "Village.
 
 rwa_villages <- sf::st_make_valid(rwa_villages)
 
-hfc_sf <- sf::st_as_sf(hfc_regress, coords = c("coordinate.Longitude", "coordinate.Latitude"), crs = 4326)
+hfc_sf <- sf::st_as_sf(
+  x = hfc_regress,
+  coords = c("coordinate.Longitude", "coordinate.Latitude"),
+  crs = 4326
+)
 
 ##Karongi----
-karongi_lv <- sf::st_read(dsn = file.path(data_path, "Karongi Surveyed 0116", "Surveyed_LV_Lines.shp"))
+karongi_lv <- sf::st_read(
+  dsn = file.path(data_path, "Karongi Surveyed 0116", "Surveyed_LV_Lines.shp")
+)
 
 hfc_karongi <- hfc_sf |> 
   dplyr::filter(district_key == "Karongi")
@@ -207,7 +231,9 @@ ggplot2::ggsave(
 
 ##Rulindo----
 
-rulindo_lv <- sf::st_read(dsn = file.path(data_path, "Rulindo Surveyed 0116", "Surveyed_LV_Lines.shp"))
+rulindo_lv <- sf::st_read(
+  dsn = file.path(data_path, "Rulindo Surveyed 0116", "Surveyed_LV_Lines.shp")
+)
 
 hfc_rulindo <- hfc_sf |> 
   dplyr::filter(district_key == "Rulindo")
@@ -241,7 +267,9 @@ ggplot2::ggsave(
 
 
 ##Rutsiro----
-rutsiro_lv <- sf::st_read(dsn = file.path(data_path, "Rutsiro Surveyed 0116", "Surveyed_LV_Lines.shp"))
+rutsiro_lv <- sf::st_read(
+  dsn = file.path(data_path, "Rutsiro Surveyed 0116", "Surveyed_LV_Lines.shp")
+)
 
 hfc_rutsiro <- hfc_sf |> 
   dplyr::filter(district_key == "Rutsiro")
