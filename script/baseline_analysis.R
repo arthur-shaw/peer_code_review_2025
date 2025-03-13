@@ -206,7 +206,9 @@ create_area_plot <- function(
 }
 
 # its use might look like this
-create_area_plot(
+
+# Karongi
+karongi_lv <- create_area_plot(
   hfc_sf = hfc_sf,
   villages_df = rwa_villages,
   data_dir = data_path,
@@ -216,107 +218,31 @@ create_area_plot(
   output_path = output_path
 )
 
-##Karongi----
-karongi_lv <- sf::st_read(
-  dsn = file.path(data_path, "Karongi Surveyed 0116", "Surveyed_LV_Lines.shp")
+# Rulido
+rulindo_lv <- create_area_plot(
+  hfc_sf = hfc_sf,
+  villages_df = rwa_villages,
+  data_dir = data_path,
+  sub_dir = "Rulindo Surveyed 0116",
+  shp_name = "Surveyed_LV_Lines.shp"
+  district_key = "Rulindo",
+  output_path = output_path
 )
 
-hfc_karongi <- hfc_sf |> 
-  dplyr::filter(district_key == "Karongi")
-
-karongi_villages <- rwa_villages |> 
-  dplyr::filter(District == "Karongi")
-
-karongi_lv <- sf::st_transform(karongi_lv, crs = 4326)
-karongi_villages <- sf::st_transform(karongi_villages, crs = 4326)
-
-karongi_plot <- ggplot2::ggplot(data = karongi_villages) +
-  ggplot2::geom_sf(fill = NA, color = "lightgrey") +  
-  ggplot2::geom_sf(data = karongi_lv, color = "blue", size = 0.5) + 
-  ggplot2::geom_sf(data = hfc_karongi, color = "red", size = 0.1) +
-  ggplot2::labs(title = "Electrification Network in Karongi") +
-  ggplot2::theme_minimal()
-
-ggplot2::ggsave(
-  filename = file.path(output_path, "karongi.jpeg"),
-  plot = karongi_plot,
-  width = 12,      
-  height = 9,      
-  units = "in",
-  scale = 0.5
-)
-
-##Rulindo----
-
-rulindo_lv <- sf::st_read(
-  dsn = file.path(data_path, "Rulindo Surveyed 0116", "Surveyed_LV_Lines.shp")
-)
-
-hfc_rulindo <- hfc_sf |> 
-  dplyr::filter(district_key == "Rulindo")
-
-rulindo_villages <- rwa_villages |> 
-  dplyr::filter(District == "Rulindo")
-
-rulindo_lv <- sf::st_transform(rulindo_lv, crs = 4326)
-
-rulindo_villages <- sf::st_transform(rulindo_villages, crs = 4326)
-
-hfc_rulindo <- sf::st_transform(hfc_rulindo, crs = 4326)
-
-hfc_rulindo <- sf::st_intersection(rulindo_villages, hfc_rulindo)
-
-rulindo_plot <- ggplot2::ggplot(data = rulindo_villages) +
-  ggplot2::geom_sf(fill = NA, color = "lightgrey") +  
-  ggplot2::geom_sf(data = rulindo_lv, color = "blue", size = 0.5) + 
-  ggplot2::geom_sf(data = hfc_rulindo, color = "red", size = 0.1) +
-  ggplot2::labs(title = "Electrification Network in Rulindo") +
-  ggplot2::theme_minimal()
-
-ggplot2::ggsave(
-  filename = file.path(output_path, "rulindo.jpeg"),
-  plot = rulindo_plot,
-  width = 12,      
-  height = 9,      
-  units = "in",
-  scale = 0.5
-)
-
-
-##Rutsiro----
-rutsiro_lv <- sf::st_read(
-  dsn = file.path(data_path, "Rutsiro Surveyed 0116", "Surveyed_LV_Lines.shp")
-)
-
-hfc_rutsiro <- hfc_sf |> 
-  dplyr::filter(district_key == "Rutsiro")
-
-rutsiro_villages <- rwa_villages |> 
-  dplyr::filter(District == "Rutsiro")
-
-rutsiro_lv <- sf::st_transform(rutsiro_lv, crs = 4326)
-rutsiro_villages <- sf::st_transform(rutsiro_villages, crs = 4326)
-
-rutsiro_villages <- sf::st_zm(rutsiro_villages)
-
-rutsiro_plot <- ggplot2::ggplot() +
-  ggplot2::geom_sf(data = rutsiro_villages, fill = NA, color = "lightgrey", size = 0.3) +  
-  ggplot2::geom_sf(data = rutsiro_lv, color = "blue", size = 0.5) +  
-  ggplot2::geom_sf(data = hfc_rutsiro, color = "red", size = 0.1) +  
-  ggplot2::labs(title = "Electrification Network in Rutsiro") +
-  ggplot2::theme_minimal()
-
-ggplot2::ggsave(
-  filename = file.path(output_path, "rutsiro.jpeg"),
-  plot = rutsiro_plot,
-  width = 12,      
-  height = 9,      
-  units = "in",
-  scale = 0.5
+# Rutsiro
+rutsiro_lv <- create_area_plot(
+  hfc_sf = hfc_sf,
+  villages_df = rwa_villages,
+  data_dir = data_path,
+  sub_dir = "Rutsiro Surveyed 0116",
+  shp_name = "Surveyed_LV_Lines.shp"
+  district_key = "Rutsiro",
+  output_path = output_path
 )
 
 #Rusizi----
 
+# this one is different for some reason--why?
 
 hfc_rusizi <- hfc_sf |> 
   dplyr::filter(district_key == "Rusizi")
