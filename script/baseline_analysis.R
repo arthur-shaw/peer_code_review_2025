@@ -48,24 +48,33 @@ hfc_regress <- hfc_constr |>
     wtp_12 = J4_2*12,
     wtp_24 = J5_2*24
   ) |> 
-  dplyr::mutate(dplyr::across(c("J1_final", # wtp_fixed
+  dplyr::mutate(
+    dplyr::across(
+      .cols = c(
+        "J1_final", # wtp_fixed
                   "J2_1",     # wtp_fixed_appliance
                   "J3_1"     # wtp_fixed_low_reliability
-  ), ~ pmax(.x, 1000)))  |> 
-  dplyr::mutate(dplyr::across(c("J1_final", # wtp_fixed
+      ),
+      .fns = ~ pmax(.x, 1000)
+    )
+  )  |> 
+  dplyr::mutate(
+    dplyr::across(
+      .cols = c(
+        "J1_final", # wtp_fixed
                   "J2_1",     # wtp_fixed_appliance
                   "J3_1"     # wtp_fixed_low_reliability
-  ), ~pmin(.x, 100000))) |> 
-  
+      ),
+      .fns = ~pmin(.x, 100000)
+    )
+  ) |> 
   dplyr::rename(
     fixed_system = J1_final,
     appliance = J2_1,
     low_reliability = J3_1,
     lightbulb = J6_1
   ) |>  
-  dplyr::mutate(
-    lightbulb = pmax(lightbulb, 100)
-  ) |> 
+  dplyr::mutate(lightbulb = pmax(lightbulb, 100)) |> 
   dplyr::mutate(
     `log(appliance) - log(fixed_system)` = log(appliance) - log(fixed_system),
     `log(fixed_system) - log(low_reliability)` = log(fixed_system) - log(low_reliability)
@@ -102,8 +111,9 @@ hfc_regress <- hfc_regress |>
   ) |> 
   dplyr::mutate(
     A2_4_week = dplyr::if_else(
-      A2_4_week > quantile(A2_4_week, 0.99, na.rm = TRUE),
-      quantile(A2_4_week, 0.99, na.rm = TRUE), A2_4_week
+      condition = A2_4_week > quantile(A2_4_week, 0.99, na.rm = TRUE),
+      true = quantile(A2_4_week, 0.99, na.rm = TRUE),
+      false = A2_4_week
     ) 
   ) |> 
   dplyr::rename(
@@ -113,7 +123,11 @@ hfc_regress <- hfc_regress |>
 
 hfc_regress<- hfc_regress |> 
   dplyr::mutate(
-    weekly_income = dplyr::if_else(is.na(weekly_income), 0, weekly_income)
+    weekly_income = dplyr::if_else(
+      condition = is.na(weekly_income), 
+      true = 0,
+      false = weekly_income
+    )
   )
 
 hfc_regress <- hfc_regress |>
@@ -336,8 +350,8 @@ ggplot2::ggsave(
 
 
 #LV line----
-karongi_lv <- karongi_lv |> dplyr::rename(length = SHAPE_Leng)
-rutsiro_lv <- rutsiro_lv |> dplyr::select(length, geometry)
+karongi_lv <- dplyr::rename(.data = karongi_lv, length = SHAPE_Leng)
+rutsiro_lv <- dplyr::select(.data = rutsiro_lv, length, geometry)
 
 lv_line <- rbind(karongi_lv, rulindo_lv, rutsiro_lv)
 
