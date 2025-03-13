@@ -21,9 +21,11 @@ After downloading the data, **update the path in the code** to match the locatio
 ## Running the Code
 
 1. Download the data from Dropbox using the link above.
-2. Update the data path in the R scripts to point to your local Dropbox folder.
-3. Open the project in RStudio.
-4. Run the scripts to generate the outputs. The outputs produced should match the ones in the `output_compare` folder provided in the repository.
+2. Update the data path in the R scripts to point to your local Dropbox folder here:
+   ```markdown
+![Alt text for the image]("C:\Users\wb614406\Dropbox\peer_code_review_2025\documents\Screenshot 2025-03-12 204412.png")
+4. Open the project "peer_code_review_2025.Rproj" in RStudio.
+5. Run the scripts in whole to generate the outputs. The outputs produced should match the ones in the `output_compare` folder provided in the repository.
 
 ## Output
 
