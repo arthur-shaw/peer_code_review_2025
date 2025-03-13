@@ -27,39 +27,39 @@ data_path <- file.path(
   "peer_code_review_2025/data"
 )
 
-hfc_constr <- read_xlsx(file.path(data_path, "hfc_constr.xlsx"))
+hfc_constr <- readxl::read_xlsx(file.path(data_path, "hfc_constr.xlsx"))
 
 #Regression analysis
 
 hfc_regress <- hfc_constr |> 
-  mutate(
+  dplyr::mutate(
     asset_index = C3_1 + C3_2 + C3_3
     + C3_4 + C3_5 + C3_6 + C3_7 + C3_8
     + C3_9 + C3_10 +C3_11 + C3_12 + C3_13
   ) |> 
-  mutate(
+  dplyr::mutate(
     wtp_12 = J4_2*12,
     wtp_24 = J5_2*24
   ) |> 
-  mutate(across(c("J1_final", # wtp_fixed
+  dplyr::mutate(dplyr::across(c("J1_final", # wtp_fixed
                   "J2_1",     # wtp_fixed_appliance
                   "J3_1"     # wtp_fixed_low_reliability
   ), ~ pmax(.x, 1000)))  |> 
-  mutate(across(c("J1_final", # wtp_fixed
+  dplyr::mutate(dplyr::across(c("J1_final", # wtp_fixed
                   "J2_1",     # wtp_fixed_appliance
                   "J3_1"     # wtp_fixed_low_reliability
   ), ~pmin(.x, 100000))) |> 
   
-  rename(
+  dplyr::rename(
     fixed_system = J1_final,
     appliance = J2_1,
     low_reliability = J3_1,
     lightbulb = J6_1
   ) |>  
-  mutate(
+  dplyr::mutate(
     lightbulb = pmax(lightbulb, 100)
   ) |> 
-  mutate(
+  dplyr::mutate(
     `log(appliance) - log(fixed_system)` = log(appliance) - log(fixed_system),
     `log(fixed_system) - log(low_reliability)` = log(fixed_system) - log(low_reliability)
   )
@@ -68,8 +68,8 @@ hfc_regress <- hfc_constr |>
 #Adding other controls----
 
 hfc_regress <- hfc_regress |> 
-  rename(household_size = A1_1) |> 
-  rename(
+  dplyr::rename(household_size = A1_1) |> 
+  dplyr::rename(
     primary_week = A2_7,
     primary_day = A2_8,
     primary_hour = A2_9,
@@ -79,8 +79,8 @@ hfc_regress <- hfc_regress |>
   )
 
 hfc_regress <- hfc_regress |>
-  mutate(
-    A2_4_week = case_when(
+  dplyr::mutate(
+    A2_4_week = dplyr::case_when(
       A2_5_label == "Hour" ~ A2_4 * primary_hour * primary_day,
       A2_5_label == "Day"  ~ A2_4 * primary_week,
       A2_5_label == "Week" ~ A2_4 ,
@@ -93,24 +93,24 @@ hfc_regress <- hfc_regress |>
       TRUE ~ A2_4
     )
   ) |> 
-  mutate(
+  dplyr::mutate(
     A2_4_week = ifelse(
       A2_4_week > quantile(A2_4_week, 0.99, na.rm = TRUE),
       quantile(A2_4_week, 0.99, na.rm = TRUE), A2_4_week
     ) 
   ) |> 
-  rename(
+  dplyr::rename(
     weekly_income = A2_4_week
   ) 
 
 
-hfc_regress<- hfc_regress|> 
-  mutate(
+hfc_regress<- hfc_regress |> 
+  dplyr::mutate(
     weekly_income = ifelse(is.na(weekly_income), 0, weekly_income)
   )
 
 hfc_regress <- hfc_regress |>
-  mutate(
+  dplyr::mutate(
     log_head_weekly_income = log(weekly_income / 1000 + 1),  
     `log(wtp_12)-log(fixed_system)` = log(wtp_12) - log(fixed_system) ,
   )
@@ -119,22 +119,22 @@ hfc_regress <- hfc_regress |>
 #Regression outputs----
 
 
-reg_low_reliability <- felm(log(low_reliability) ~ log_head_weekly_income + asset_index + household_size|village, data = hfc_regress)
+reg_low_reliability <- lfe::felm(log(low_reliability) ~ log_head_weekly_income + asset_index + household_size|village, data = hfc_regress)
 summary(reg_low_reliability)
 
-reg_fixed <- felm(log(fixed_system) ~ log_head_weekly_income + asset_index + household_size|village, data = hfc_regress)
+reg_fixed <- lfe::felm(log(fixed_system) ~ log_head_weekly_income + asset_index + household_size|village, data = hfc_regress)
 summary(reg_fixed)
 
-reg_appliance_fix <- felm(`log(appliance) - log(fixed_system)`~ log_head_weekly_income + asset_index + household_size|village, data = hfc_regress)
+reg_appliance_fix <- lfe::felm(`log(appliance) - log(fixed_system)`~ log_head_weekly_income + asset_index + household_size|village, data = hfc_regress)
 summary(reg_appliance_fix)
 
-reg_fix_low_reliability <- felm(`log(fixed_system) - log(low_reliability)` ~ log_head_weekly_income + asset_index + household_size|village, data = hfc_regress)
+reg_fix_low_reliability <- lfe::felm(`log(fixed_system) - log(low_reliability)` ~ log_head_weekly_income + asset_index + household_size|village, data = hfc_regress)
 summary(reg_fix_low_reliability)
 
-reg_12 <- felm(`log(wtp_12)-log(fixed_system)` ~ log_head_weekly_income + asset_index + household_size|village, data = hfc_regress)
+reg_12 <- lfe::felm(`log(wtp_12)-log(fixed_system)` ~ log_head_weekly_income + asset_index + household_size|village, data = hfc_regress)
 summary(reg_12)
 
-reg_lightbulb <- felm(log(lightbulb) ~ log_head_weekly_income + asset_index + household_size|village, data = hfc_regress)
+reg_lightbulb <- lfe::felm(log(lightbulb) ~ log_head_weekly_income + asset_index + household_size|village, data = hfc_regress)
 summary(reg_lightbulb)
 
 regs <- list(
@@ -146,14 +146,14 @@ regs <- list(
   "lightbulb" = reg_lightbulb
 )
 
-stargazer( 
+stargazer::stargazer( 
   regs,
   type = "latex", 
   title = "Regression Results", 
   out = file.path(output_path, "regression_output1.latex")
 )
 
-stargazer(
+stargazer::stargazer(
   regs,
   type = "html",
   title = "Regression Results",
@@ -164,32 +164,32 @@ stargazer(
 
 
 #Distance to the household and the surveyed LV lines
-rwa_villages <- st_read(dsn = file.path(data_path, "rwa_villages", "Village.shp"))
+rwa_villages <- sf::st_read(dsn = file.path(data_path, "rwa_villages", "Village.shp"))
 
-rwa_villages <- st_make_valid(rwa_villages)
+rwa_villages <- sf::st_make_valid(rwa_villages)
 
-hfc_sf <- st_as_sf(hfc_regress, coords = c("coordinate.Longitude", "coordinate.Latitude"), crs = 4326)
+hfc_sf <- sf::st_as_sf(hfc_regress, coords = c("coordinate.Longitude", "coordinate.Latitude"), crs = 4326)
 
 ##Karongi----
-karongi_lv <- st_read(dsn = file.path(data_path, "Karongi Surveyed 0116", "Surveyed_LV_Lines.shp"))
+karongi_lv <- sf::st_read(dsn = file.path(data_path, "Karongi Surveyed 0116", "Surveyed_LV_Lines.shp"))
 
 hfc_karongi <- hfc_sf |> 
-  filter(district_key == "Karongi")
+  dplyr::filter(district_key == "Karongi")
 
 karongi_villages <- rwa_villages |> 
-  filter(District == "Karongi")
+  dplyr::filter(District == "Karongi")
 
-karongi_lv <- st_transform(karongi_lv, crs = 4326)
-karongi_villages <- st_transform(karongi_villages, crs = 4326)
+karongi_lv <- sf::st_transform(karongi_lv, crs = 4326)
+karongi_villages <- sf::st_transform(karongi_villages, crs = 4326)
 
-karongi_plot <- ggplot(data = karongi_villages) +
-  geom_sf(fill = NA, color = "lightgrey") +  
-  geom_sf(data = karongi_lv, color = "blue", size = 0.5) + 
-  geom_sf(data = hfc_karongi, color = "red", size = 0.1) +
-  labs(title = "Electrification Network in Karongi") +
-  theme_minimal()
+karongi_plot <- ggplot2::ggplot(data = karongi_villages) +
+  ggplot2::geom_sf(fill = NA, color = "lightgrey") +  
+  ggplot2::geom_sf(data = karongi_lv, color = "blue", size = 0.5) + 
+  ggplot2::geom_sf(data = hfc_karongi, color = "red", size = 0.1) +
+  ggplot2::labs(title = "Electrification Network in Karongi") +
+  ggplot2::theme_minimal()
 
-ggsave(
+ggplot2::ggsave(
   filename = file.path(output_path, "karongi.jpeg"),
   plot = karongi_plot,
   width = 12,      
@@ -200,30 +200,30 @@ ggsave(
 
 ##Rulindo----
 
-rulindo_lv <- st_read(dsn = file.path(data_path, "Rulindo Surveyed 0116", "Surveyed_LV_Lines.shp"))
+rulindo_lv <- sf::st_read(dsn = file.path(data_path, "Rulindo Surveyed 0116", "Surveyed_LV_Lines.shp"))
 
 hfc_rulindo <- hfc_sf |> 
-  filter(district_key == "Rulindo")
+  dplyr::filter(district_key == "Rulindo")
 
 rulindo_villages <- rwa_villages |> 
-  filter(District == "Rulindo")
+  dplyr::filter(District == "Rulindo")
 
-rulindo_lv <- st_transform(rulindo_lv, crs = 4326)
+rulindo_lv <- sf::st_transform(rulindo_lv, crs = 4326)
 
-rulindo_villages <- st_transform(rulindo_villages, crs = 4326)
+rulindo_villages <- sf::st_transform(rulindo_villages, crs = 4326)
 
-hfc_rulindo <- st_transform(hfc_rulindo, crs = 4326)
+hfc_rulindo <- sf::st_transform(hfc_rulindo, crs = 4326)
 
-hfc_rulindo <- st_intersection(rulindo_villages, hfc_rulindo)
+hfc_rulindo <- sf::st_intersection(rulindo_villages, hfc_rulindo)
 
-rulindo_plot <- ggplot(data = rulindo_villages) +
-  geom_sf(fill = NA, color = "lightgrey") +  
-  geom_sf(data = rulindo_lv, color = "blue", size = 0.5) + 
-  geom_sf(data = hfc_rulindo, color = "red", size = 0.1) +
-  labs(title = "Electrification Network in Rulindo") +
-  theme_minimal()
+rulindo_plot <- ggplot2::ggplot(data = rulindo_villages) +
+  ggplot2::geom_sf(fill = NA, color = "lightgrey") +  
+  ggplot2::geom_sf(data = rulindo_lv, color = "blue", size = 0.5) + 
+  ggplot2::geom_sf(data = hfc_rulindo, color = "red", size = 0.1) +
+  ggplot2::labs(title = "Electrification Network in Rulindo") +
+  ggplot2::theme_minimal()
 
-ggsave(
+ggplot2::ggsave(
   filename = file.path(output_path, "rulindo.jpeg"),
   plot = rulindo_plot,
   width = 12,      
@@ -234,27 +234,27 @@ ggsave(
 
 
 ##Rutsiro----
-rutsiro_lv <- st_read(dsn = file.path(data_path, "Rutsiro Surveyed 0116", "Surveyed_LV_Lines.shp"))
+rutsiro_lv <- sf::st_read(dsn = file.path(data_path, "Rutsiro Surveyed 0116", "Surveyed_LV_Lines.shp"))
 
 hfc_rutsiro <- hfc_sf |> 
-  filter(district_key == "Rutsiro")
+  dplyr::filter(district_key == "Rutsiro")
 
 rutsiro_villages <- rwa_villages |> 
-  filter(District == "Rutsiro")
+  dplyr::filter(District == "Rutsiro")
 
-rutsiro_lv <- st_transform(rutsiro_lv, crs = 4326)
-rutsiro_villages <- st_transform(rutsiro_villages, crs = 4326)
+rutsiro_lv <- sf::st_transform(rutsiro_lv, crs = 4326)
+rutsiro_villages <- sf::st_transform(rutsiro_villages, crs = 4326)
 
-rutsiro_villages <- st_zm(rutsiro_villages)
+rutsiro_villages <- sf::st_zm(rutsiro_villages)
 
-rutsiro_plot <- ggplot() +
-  geom_sf(data = rutsiro_villages, fill = NA, color = "lightgrey", size = 0.3) +  
-  geom_sf(data = rutsiro_lv, color = "blue", size = 0.5) +  
-  geom_sf(data = hfc_rutsiro, color = "red", size = 0.1) +  
-  labs(title = "Electrification Network in Rutsiro") +
-  theme_minimal()
+rutsiro_plot <- ggplot2::ggplot() +
+  ggplot2::geom_sf(data = rutsiro_villages, fill = NA, color = "lightgrey", size = 0.3) +  
+  ggplot2::geom_sf(data = rutsiro_lv, color = "blue", size = 0.5) +  
+  ggplot2::geom_sf(data = hfc_rutsiro, color = "red", size = 0.1) +  
+  ggplot2::labs(title = "Electrification Network in Rutsiro") +
+  ggplot2::theme_minimal()
 
-ggsave(
+ggplot2::ggsave(
   filename = file.path(output_path, "rutsiro.jpeg"),
   plot = rutsiro_plot,
   width = 12,      
@@ -267,28 +267,28 @@ ggsave(
 
 
 hfc_rusizi <- hfc_sf |> 
-  filter(district_key == "Rusizi")
+  dplyr::filter(district_key == "Rusizi")
 
 
 rusizi_villages <- rwa_villages |> 
-  filter(District == "Rusizi")
+  dplyr::filter(District == "Rusizi")
 
 
-rusizi_villages <- st_transform(rusizi_villages, crs = 4326)
+rusizi_villages <- sf::st_transform(rusizi_villages, crs = 4326)
 
-rusizi_villages <- st_zm(rusizi_villages)
+rusizi_villages <- sf::st_zm(rusizi_villages)
 
-hfc_rusizi <- st_intersection(hfc_rusizi, rusizi_villages)
+hfc_rusizi <- sf::st_intersection(hfc_rusizi, rusizi_villages)
 
-rusizi_plot <- ggplot() +
-  geom_sf(data = rusizi_villages, fill = NA, color = "black", size = 0.3) +  
+rusizi_plot <- ggplot2::ggplot() +
+  ggplot2::geom_sf(data = rusizi_villages, fill = NA, color = "black", size = 0.3) +  
   # geom_sf(data = rusizi_lv, color = "blue", size = 0.5) +  
-  geom_sf(data = hfc_rusizi, color = "red", size = 0.5) +  
-  labs(title = "Surveyed Households in Rusizi") +
-  theme_void()
+  ggplot2::geom_sf(data = hfc_rusizi, color = "red", size = 0.5) +  
+  ggplot2::labs(title = "Surveyed Households in Rusizi") +
+  ggplot2::theme_void()
 
 
-ggsave(
+ggplot2::ggsave(
   filename = file.path(output_path, "rusizi.jpeg"),
   plot = rusizi_plot,
   width = 12,      
@@ -301,14 +301,14 @@ ggsave(
 
 
 #LV line----
-karongi_lv <- karongi_lv |> rename(length = SHAPE_Leng)
-rutsiro_lv <- rutsiro_lv |> select(length, geometry)
+karongi_lv <- karongi_lv |> dplyr::rename(length = SHAPE_Leng)
+rutsiro_lv <- rutsiro_lv |> dplyr::select(length, geometry)
 
 lv_line <- rbind(karongi_lv, rulindo_lv, rutsiro_lv)
 
-lv_line <-st_zm(lv_line)
+lv_line <- sf::st_zm(lv_line)
 
-dist_matrix <- st_distance(hfc_sf, lv_line)
+dist_matrix <- sf::st_distance(hfc_sf, lv_line)
 
 dist_matrix <- as.data.frame(dist_matrix)
 
@@ -316,14 +316,14 @@ dist_matrix <- as.data.frame(dist_matrix)
 dist_matrix$min_meter <- apply(dist_matrix, 1, min, na.rm = TRUE)
 
 dist <- dist_matrix |> 
-  select(min_meter) |> 
-  mutate(min_meter = round(min_meter,2))
+  dplyr::select(min_meter) |> 
+  dplyr::mutate(min_meter = round(min_meter,2))
 
 
 hfc_sf_regress <- hfc_sf |>
-  mutate(distance_to_lv = dist) |> 
-  st_drop_geometry() |> 
-  mutate(
+  dplyr::mutate(distance_to_lv = dist) |> 
+  sf::st_drop_geometry() |> 
+  dplyr::mutate(
     distance_to_lv = as.numeric(unlist(distance_to_lv)),
     distance_to_lv = distance_to_lv / 1000  # Convert meters to kilometers
   )
@@ -334,42 +334,42 @@ hfc_sf_regress <- hfc_sf |>
 
 
 # Regression 1: Low Reliability
-reg_low_reliability <- felm(
+reg_low_reliability <- lfe::felm(
   log(low_reliability) ~ log_head_weekly_income + asset_index + household_size + distance_to_lv | village,
   data = hfc_sf_regress
 )
 summary(reg_low_reliability)
 
 # Regression 1: Low Reliability
-reg_fixed_system <- felm(
+reg_fixed_system <- lfe::felm(
   log(fixed_system) ~ log_head_weekly_income + asset_index + household_size + distance_to_lv | village,
   data = hfc_sf_regress
 )
 summary(reg_fixed_system)
 
 # Regression 2: Appliance Fix (including village FE)
-reg_appliance_fix <- felm(
+reg_appliance_fix <- lfe::felm(
   `log(appliance) - log(fixed_system)` ~ log_head_weekly_income + asset_index + household_size + distance_to_lv | village,
   data = hfc_sf_regress
 )
 summary(reg_appliance_fix)
 
 # Regression 3: Fixed System vs Low Reliability (including village FE)
-reg_fix_low_reliability <- felm(
+reg_fix_low_reliability <- lfe::felm(
   `log(fixed_system) - log(low_reliability)` ~ log_head_weekly_income + asset_index + household_size + distance_to_lv | village,
   data = hfc_sf_regress
 )
 summary(reg_fix_low_reliability)
 
 # Regression 4: WTP 12 vs Fixed System (including village FE)
-reg_12 <- felm(
+reg_12 <- lfe::felm(
   `log(wtp_12)-log(fixed_system)` ~ log_head_weekly_income + asset_index + household_size + distance_to_lv | village,
   data = hfc_sf_regress
 )
 summary(reg_12)
 
 # Regression 5: Lightbulb (including village FE)
-reg_lightbulb <- felm(
+reg_lightbulb <- lfe::felm(
   log(lightbulb) ~ log_head_weekly_income + asset_index + household_size + distance_to_lv | village,
   data = hfc_sf_regress
 )
@@ -384,14 +384,14 @@ regs <- list(
   "lightbulb" = reg_lightbulb
 )
 
-stargazer(
+stargazer::stargazer(
   regs,
   type = "latex",
   title = "Regression Results",
   out = file.path(output_path, "regression_output2.latex")
 )
 
-stargazer(
+stargazer::stargazer(
   regs,
   type = "html",
   title = "Regression Results",
@@ -401,21 +401,21 @@ stargazer(
 
 #LV with other control----
 
-distance_hhsize <- felm(
+distance_hhsize <- lfe::felm(
   distance_to_lv ~  household_size  | village,
   data = hfc_sf_regress
 )
 
 summary(distance_hhsize)
 
-distance_asset <- felm(
+distance_asset <- lfe::felm(
   distance_to_lv ~ asset_index  | village,
   data = hfc_sf_regress
 )
 
 summary(distance_asset)
 
-distance_income <- felm(
+distance_income <- lfe::felm(
   distance_to_lv ~ log_head_weekly_income  | village,
   data = hfc_sf_regress
 )
@@ -424,7 +424,7 @@ summary(distance_income)
 
 
 
-distance_all <- felm(
+distance_all <- lfe::felm(
   distance_to_lv ~ log_head_weekly_income + asset_index + household_size  | village,
   data = hfc_sf_regress
 )
@@ -439,7 +439,7 @@ regs <- list(
 )
 
 
-stargazer(
+stargazer::stargazer(
   regs,
   type = "latex",
   title = "Regression Results",
@@ -447,7 +447,7 @@ stargazer(
 )
 
 
-stargazer(
+stargazer::stargazer(
   regs,
   type = "html",
   title = "Regression Results",
