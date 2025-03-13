@@ -101,7 +101,7 @@ hfc_regress <- hfc_regress |>
     )
   ) |> 
   dplyr::mutate(
-    A2_4_week = ifelse(
+    A2_4_week = dplyr::if_else(
       A2_4_week > quantile(A2_4_week, 0.99, na.rm = TRUE),
       quantile(A2_4_week, 0.99, na.rm = TRUE), A2_4_week
     ) 
@@ -113,7 +113,7 @@ hfc_regress <- hfc_regress |>
 
 hfc_regress<- hfc_regress |> 
   dplyr::mutate(
-    weekly_income = ifelse(is.na(weekly_income), 0, weekly_income)
+    weekly_income = dplyr::if_else(is.na(weekly_income), 0, weekly_income)
   )
 
 hfc_regress <- hfc_regress |>
