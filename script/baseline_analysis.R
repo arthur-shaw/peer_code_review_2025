@@ -5,7 +5,6 @@
 #############
 
 
-pacman::p_load(knitr, flm, stargazer, tidyverse, dplyr, here, sf, ggplot2, readxl, writexl, janitor, randomizr, RCT, purrr, lfe)
 library(googlesheets4)
 getwd()
 
