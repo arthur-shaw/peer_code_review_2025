@@ -42,13 +42,9 @@ hfc_regress <- hfc_constr |>
   dplyr::mutate(
     asset_index = C3_1 + C3_2 + C3_3
     + C3_4 + C3_5 + C3_6 + C3_7 + C3_8
-    + C3_9 + C3_10 +C3_11 + C3_12 + C3_13
-  ) |> 
-  dplyr::mutate(
+      + C3_9 + C3_10 +C3_11 + C3_12 + C3_13,
     wtp_12 = J4_2*12,
-    wtp_24 = J5_2*24
-  ) |> 
-  dplyr::mutate(
+    wtp_24 = J5_2*24,
     dplyr::across(
       .cols = c(
         "J1_final", # wtp_fixed
@@ -56,9 +52,7 @@ hfc_regress <- hfc_constr |>
                   "J3_1"     # wtp_fixed_low_reliability
       ),
       .fns = ~ pmax(.x, 1000)
-    )
-  )  |> 
-  dplyr::mutate(
+    ),
     dplyr::across(
       .cols = c(
         "J1_final", # wtp_fixed
@@ -74,27 +68,20 @@ hfc_regress <- hfc_constr |>
     low_reliability = J3_1,
     lightbulb = J6_1
   ) |>  
-  dplyr::mutate(lightbulb = pmax(lightbulb, 100)) |> 
   dplyr::mutate(
+    lightbulb = pmax(lightbulb, 100),
     `log(appliance) - log(fixed_system)` = log(appliance) - log(fixed_system),
     `log(fixed_system) - log(low_reliability)` = log(fixed_system) - log(low_reliability)
-  )
-
-
-#Adding other controls----
-
-hfc_regress <- hfc_regress |> 
-  dplyr::rename(household_size = A1_1) |> 
+  ) |> 
   dplyr::rename(
+    household_size = A1_1
     primary_week = A2_7,
     primary_day = A2_8,
     primary_hour = A2_9,
     secondary_week = A3_8,
     secondary_day = A3_9,
     secondary_hour = A3_10
-  )
-
-hfc_regress <- hfc_regress |>
+  ) |>
   dplyr::mutate(
     A2_4_week = dplyr::case_when(
       A2_5_label == "Hour" ~ A2_4 * primary_hour * primary_day,
@@ -116,22 +103,13 @@ hfc_regress <- hfc_regress |>
       false = A2_4_week
     ) 
   ) |> 
-  dplyr::rename(
-    weekly_income = A2_4_week
-  ) 
-
-
-hfc_regress<- hfc_regress |> 
+  dplyr::rename(weekly_income = A2_4_week) |> 
   dplyr::mutate(
     weekly_income = dplyr::if_else(
       condition = is.na(weekly_income), 
       true = 0,
       false = weekly_income
-    )
-  )
-
-hfc_regress <- hfc_regress |>
-  dplyr::mutate(
+    ),
     log_head_weekly_income = log(weekly_income / 1000 + 1),  
     `log(wtp_12)-log(fixed_system)` = log(wtp_12) - log(fixed_system)
   )
